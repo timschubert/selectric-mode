@@ -33,7 +33,7 @@
 (defvar selectric-mode-map (make-sparse-keymap) "Selectric mode's keymap.")
 
 (defvar selectric-affected-bindings-list
-  '("<up>" "<down>" "<right>" "<left>" "DEL" "C-d")
+  '("<up>" "<down>" "<right>" "<left>" "DEL" "C-d" "RET")
   "The keys we'll override.")
 
 (defvar selectric-saved-bindings (make-hash-table :test 'equal)
@@ -50,13 +50,18 @@
       (start-process "*Messages*" nil "afplay" sound-file-name)
     (start-process "*Messages*" nil "aplay" sound-file-name)))
 
+(defun selectric-return-sound ()
+  "Make the ping sound."
+  (progn
+    (selectric-make-sound (format "%sping.wav" selectric-files-path))))
+
 (defun selectric-type-sound ()
   "Make the sound of the printing element hitting the paper."
   (progn
-    (selectric-make-sound (format "%sselectric-type.wav" selectric-files-path))
+    (selectric-make-sound (format "%sselectric-type.wav" selectric-files-path))))
     (unless (minibufferp)
       (if (= (current-column) (current-fill-column))
-          (selectric-make-sound (format "%sping.wav" selectric-files-path))))))
+          (selectric-return-sound)))))
 
 (defun selectric-move-sound ()
   "Make the carriage movement sound."
@@ -92,6 +97,8 @@ Selectric typewriter."
             (lambda ()
               (interactive)
               (prog2
+                  (when (string= key "RET")
+                      (selectric-return-sound))
                 (selectric-move-sound)
                 (call-interactively (gethash key selectric-saved-bindings))))))
 
